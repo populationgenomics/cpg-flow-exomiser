@@ -6,7 +6,7 @@ from cpg_utils import Path
 from cpg_flow.utils import exists
 
 if TYPE_CHECKING:
-    from cpg_flow.targets import SequencingGroup
+    from cpg_flow.targets.sequencing_group import SequencingGroup
 
 
 def extract_mini_ped_files(proband_dict: dict[str, list['SequencingGroup']], out_paths: dict[str, Path]):

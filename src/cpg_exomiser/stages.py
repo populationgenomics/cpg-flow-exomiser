@@ -27,7 +27,8 @@ from cpg_flow.workflow import get_workflow
 
 if TYPE_CHECKING:
     from cpg_utils import Path
-    from cpg_flow.targets import Dataset, SequencingGroup
+    from cpg_flow.targets.dataset import Dataset
+    from cpg_flow.targets.sequencing_group import SequencingGroup
     from cpg_flow.stage import StageInput, StageOutput
 
 
