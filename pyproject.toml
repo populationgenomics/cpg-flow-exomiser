@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 # TODO(you): update this to reflect the project's name & description
-name='workflow_name'
-description='Template workflow'
+name='cpg_exomiser'
+description='CPG-Flow implementation of Exomiser Workflow'
 readme = "README.md"
 # currently cpg-flow is pinned to this version
 requires-python = ">=3.10,<3.11"
@@ -22,12 +22,14 @@ classifiers=[
 ]
 
 dependencies=[
-    'cpg-flow>=v0.1.2',
+    "cpg-flow>=0.1.2",
+    "cpg-utils>=5.2.0",
+    "ruff>=0.11.0",
 ]
 
 [project.urls]
 # TODO(you): update this to reflect the project's official homepage
-Repository = "https://github.com/populationgenomics/workflow_name"
+Repository = "https://github.com/populationgenomics/cpg-flow-exomiser"
 
 [project.optional-dependencies]
 # various requirements when running cpg-flow/analysis-runner
@@ -41,16 +43,13 @@ test = [
 ]
 
 [project.scripts]
-# home for any scripts which will be installed
-# e.g. this minimal "Hello, World!" script which can be run by alias when this package is installed
-# $ say_hello
-# >> Hello, World!
-# $ say_hello cpg-flow
-# >> Hello, cpg-flow!
-say_hello = 'workflow_name.scripts.hello_world:cli_main'
 
 # the workflow runner script - entrypoint for the pipeline
-run_workflow = 'workflow_name.run_workflow:cli_main'
+run_workflow = 'cpg_exomiser.run_workflow:cli_main'
+
+# scripts for procesing exomiser result files into aggregates for Seqr/Talos
+combine_exomiser_genes = 'cpg_exomiser.scripts.combine_exomiser_gene_tsvs:cli_main'
+combine_exomiser_variants = 'cpg_exomiser.scripts.combine_exomiser_variant_tsvs:cli_main'
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -116,3 +115,8 @@ ignore = [
 
 [tool.ruff.lint.isort]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.ruff.lint.per-file-ignores]
+# suppress the ARG002 "Unused method argument" warning in the stages.py file
+## - we don't need any generic cpg-flow arguments, but need to fit the required method signature
+"src/cpg_exomiser/stages.py" = ["ARG002"]
