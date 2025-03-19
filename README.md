@@ -12,9 +12,9 @@ This workflow generates Exomiser results for families.
 
 It does this by identifying families which have not previously received an analysis, creating a pseudo-joint-call from all members of the family, pulling all the family members' metadata into a phenopacket, and running Exomiser.
 
-Multiple single-family analyses are stacked into a single VM and executed in parallel, to make best use of the localised annotation resources (large files). 
+Multiple single-family analyses are stacked into a single VM and executed in parallel, to make best use of the localised annotation resources (large files).
 
-Once analysis is complete, the resulting Gene- and Variant-level result TSVs are aggregated. 
+Once analysis is complete, the resulting Gene- and Variant-level result TSVs are aggregated.
 
 * The Gene-level results are placed into a Seqr-ready format to be used in enhanced gene searches
 * The Variant-level results are placed into a Talos-ready format to be used in variant prioritisation
