@@ -32,7 +32,7 @@ jobs:
       BUILDKIT_PROGRESS: plain
       CLOUDSDK_CORE_DISABLE_PROMPTS: 1
       IMAGE_NAME: cpg_exomiser
-      DOCKER_TMP: australia-southeast1-docker.pkg.dev/cpg-common/images-tmp
+      DOCKER_DEV: australia-southeast1-docker.pkg.dev/cpg-common/images-dev
       DOCKER_MAIN: australia-southeast1-docker.pkg.dev/cpg-common/images
     steps:
       - uses: actions/checkout@v4
@@ -55,16 +55,16 @@ jobs:
 
       - name: build
         run: |
-          docker build . -f Dockerfile --tag ${{env.IMAGE_NAME}}:${{ github.sha }}
+          docker build . -f Dockerfile --tag $IMAGE_NAME:${{ github.sha }}
 
       - name: Push from merge to main
         if: ${{ github.ref_name == 'main' }}
         run: |
-          docker tag ${{env.IMAGE_NAME}}:${{ github.sha }} ${{env.DOCKER_MAIN}}/${{env.IMAGE_NAME}}:$VERSION
-          docker push ${{env.DOCKER_MAIN}}/${{env.IMAGE_NAME}}:$VERSION
+          docker tag $IMAGE_NAME:${{ github.sha }} $DOCKER_MAIN/$IMAGE_NAME:$VERSION
+          docker push $DOCKER_MAIN/$IMAGE_NAME:$VERSION
 
       - name: Push manually triggered build
         if: ${{ github.event_name == 'workflow_dispatch' && github.ref_name != 'main' }}
         run: |
-          docker tag ${{env.IMAGE_NAME}}:${{ github.sha }} ${{env.DOCKER_TMP}}/${{env.IMAGE_NAME}}:${{github.event.inputs.tag}}
-          docker push ${{env.DOCKER_TMP}}/${{env.IMAGE_NAME}}:${{github.event.inputs.tag}}
+          docker tag $IMAGE_NAME:${{ github.sha }} $DOCKER_DEV/$IMAGE_NAME:${{github.event.inputs.tag}}
+          docker push $DOCKER_DEV/$IMAGE_NAME:${{github.event.inputs.tag}}

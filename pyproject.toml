@@ -3,11 +3,10 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-# TODO(you): update this to reflect the project's name & description
 name='cpg_exomiser'
 description='CPG-Flow implementation of Exomiser Workflow'
 readme = "README.md"
-# currently cpg-flow is pinned to this version
+# currently cpg-flow is restricted to 3.10
 requires-python = ">=3.10,<3.11"
 version='0.1.0'
 license={ "file" = "LICENSE" }
@@ -22,13 +21,12 @@ classifiers=[
 ]
 
 dependencies=[
-    "cpg-flow>=0.1.2",
+    "cpg-flow>=0.2.0",
     "cpg-utils>=5.2.0",
     "ruff>=0.11.0",
 ]
 
 [project.urls]
-# TODO(you): update this to reflect the project's official homepage
 Repository = "https://github.com/populationgenomics/cpg-flow-exomiser"
 
 [project.optional-dependencies]
