@@ -58,14 +58,14 @@ def run_exomiser(content_dict: dict) -> list['Job']:
                 # read in VCF & index
                 vcf = get_batch().read_input_group(
                     **{
-                        f'{proband}_vcf': str(content_dict[proband]['vcf']),
+                        f'{proband}_vcf': content_dict[proband]['vcf'],
                         f'{proband}_vcf_index': f'{content_dict[proband]["vcf"]}.tbi',
                     },
                 )[f'{proband}_vcf']
 
                 # read in ped & phenotype JSON
-                ped = get_batch().read_input(str(content_dict[proband]['ped']))
-                ppk = get_batch().read_input(str(content_dict[proband]['pheno']))
+                ped = get_batch().read_input(content_dict[proband]['ped'])
+                ppk = get_batch().read_input(content_dict[proband]['pheno'])
 
                 # # this was really satisfying syntax to work out
                 job.declare_resource_group(

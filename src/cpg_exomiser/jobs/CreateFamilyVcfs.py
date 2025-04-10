@@ -34,7 +34,7 @@ def family_vcf_from_gvcf(family_members: list['SequencingGroup'], out_path: str)
         job.storage('10Gi')
 
     # read input
-    family_vcfs = [get_batch().read_input(str(sg.gvcf)) for sg in family_members]
+    family_vcfs = [get_batch().read_input(sg.gvcf) for sg in family_members]
 
     # declare a resource group
     job.declare_resource_group(output={'vcf.bgz': '{root}.vcf.bgz', 'vcf.bgz.tbi': '{root}.vcf.bgz.tbi'})
@@ -78,7 +78,7 @@ def family_vcf_from_gvcf(family_members: list['SequencingGroup'], out_path: str)
 def create_gvcf_to_vcf_jobs(
     proband_dict: dict[str, list['SequencingGroup']],
     previous_completions: set[str],
-    out_paths: dict[str, Path],
+    out_paths: dict[str, 'Path'],
 ) -> list['Job']:
     """
     Create Joint VCFs for families of SG IDs
@@ -91,7 +91,7 @@ def create_gvcf_to_vcf_jobs(
         list of Jobs
     """
 
-    jobs: list[Job] = []
+    jobs: list['Job'] = []
 
     # take each family
     for proband, members in proband_dict.items():
@@ -100,5 +100,5 @@ def create_gvcf_to_vcf_jobs(
         if exists(out_paths[proband]) or proband in previous_completions:
             continue
 
-        jobs.append(family_vcf_from_gvcf(members, str(out_paths[proband])))
+        jobs.append(family_vcf_from_gvcf(members, out_paths[proband]))
     return jobs

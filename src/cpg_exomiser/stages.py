@@ -287,7 +287,7 @@ class CombineExomiserVariantTsvs(DatasetStage):
         job.declare_resource_group(
             output={
                 'json': '{root}.json',
-                'ht.tar': '{root}.ht.tar'
+                'ht.tar': '{root}.ht.tar',
             }
         )
 
