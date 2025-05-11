@@ -6,13 +6,13 @@ utilities methods for interacting with metamist and detecting pedigrees in an an
 from functools import cache
 from typing import TYPE_CHECKING
 
+from loguru import logger
+
 from metamist.apis import ProjectApi
 from metamist.graphql import gql, query
 
 from cpg_utils import to_path
 from cpg_utils.config import config_retrieve
-
-from cpg_flow.utils import get_logger
 
 
 if TYPE_CHECKING:
@@ -116,12 +116,12 @@ def find_probands(dataset: 'Dataset') -> dict[str, list['SequencingGroup']]:
 
         # remove families with no affected members
         if not affected:
-            get_logger(__file__).info(f'Family {family} has no affected individuals, skipping')
+            logger.info(f'Family {family} has no affected individuals, skipping')
             continue
 
         # check that the affected members have HPO terms - required for exomiser
         if any(sg.meta['phenotypes'].get(HPO_KEY, '') == '' for sg in affected):
-            get_logger(__file__).info(f'Family {family} has affected individuals with no HPO terms, skipping')
+            logger.info(f'Family {family} has affected individuals with no HPO terms, skipping')
             continue
 
         # check to see if any affected member has parents

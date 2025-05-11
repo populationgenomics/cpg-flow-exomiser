@@ -10,6 +10,8 @@ As a dataset Stage
 
 from typing import TYPE_CHECKING
 
+from loguru import logger
+
 from cpg_utils.config import config_retrieve
 from cpg_utils.hail_batch import get_batch
 
@@ -19,9 +21,10 @@ from cpg_exomiser.jobs.MakePhenopackets import make_phenopackets
 from cpg_exomiser.jobs.MakePedExtracts import extract_mini_ped_files
 from cpg_exomiser.jobs.RunExomiser import run_exomiser
 
+from cpg_exomiser.scripts import combine_exomiser_gene_tsvs, combine_exomiser_variant_tsvs
+
 from cpg_exomiser.utils import find_seqr_projects, find_probands, find_previous_analyses
 
-from cpg_flow.utils import get_logger
 from cpg_flow.stage import DatasetStage, SequencingGroupStage, stage
 from cpg_flow.workflow import get_workflow
 
@@ -101,7 +104,7 @@ class MakeSingleFamilyPedFiles(DatasetStage):
         these outputs will be written by the time the pipeline starts
         """
 
-        get_logger().debug(f'not using inputs: {inputs}')
+        logger.debug(f'not using inputs: {inputs}')
 
         expected_out = self.expected_outputs(dataset)
         extract_mini_ped_files(
@@ -200,7 +203,7 @@ class RegisterSingleSampleExomiserResults(SequencingGroupStage):
         metamist/status_reporter registrations won't run unless there's a job in the Stage
         """
 
-        get_logger().debug(f'not using inputs: {inputs}')
+        logger.debug(f'not using inputs: {inputs}')
 
         if not (outputs := self.expected_outputs(sequencing_group)):
             return self.make_outputs(sequencing_group, jobs=None)
@@ -229,7 +232,7 @@ class CombineExomiserGeneTsvs(DatasetStage):
         projects = find_seqr_projects()
 
         if dataset.name not in projects:
-            get_logger(__file__).info(f'No Seqr project found for {dataset.name}, skipping')
+            logger.info(f'No Seqr project found for {dataset.name}, skipping')
             return self.make_outputs(dataset, data=self.expected_outputs(dataset), jobs=[], skipped=True)
 
         results = inputs.as_dict(target=dataset, stage=RunExomiser)
@@ -248,7 +251,12 @@ class CombineExomiserGeneTsvs(DatasetStage):
         job = get_batch().new_bash_job(f'CombineExomiserGeneTsvs: {dataset.name}, {project}')
         job.storage('10Gi')
         job.image(config_retrieve(['workflow', 'driver_image']))
-        job.command(f'combine_exomiser_genes --project {project} --input {" ".join(local_files)} --output {job.output}')
+        job.command(f"""
+            {combine_exomiser_gene_tsvs.__file__}
+            --project {project} \
+            --input {" ".join(local_files)} \
+            --output {job.output}
+        """)
         get_batch().write_output(job.output, str(output))
 
         return self.make_outputs(dataset, data=output, jobs=job)
@@ -272,7 +280,7 @@ class CombineExomiserVariantTsvs(DatasetStage):
     def queue_jobs(self, dataset: 'Dataset', inputs: 'StageInput') -> 'StageOutput':
 
         if not find_probands(dataset):
-            get_logger().info('No families found, skipping exomiser')
+            logger.info('No families found, skipping exomiser')
             return self.make_outputs(dataset, jobs=None, skipped=True)
 
         outputs = self.expected_outputs(dataset)
@@ -294,7 +302,7 @@ class CombineExomiserVariantTsvs(DatasetStage):
         job.image(config_retrieve(['workflow', 'driver_image']))
 
         # generate the outputs
-        job.command(f'combine_exomiser_variants --input {" ".join(family_files)} --output {job.output}')
+        job.command(f'{combine_exomiser_variant_tsvs.__file__} --input {" ".join(family_files)} --output {job.output}')
 
         # tar the Hail Table so we can remove as a single file
         job.command(f'tar --remove-files -cf {job.output}.ht.tar {job.output}.ht')

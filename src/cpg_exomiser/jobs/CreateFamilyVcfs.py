@@ -1,7 +1,6 @@
 
 from typing import TYPE_CHECKING
 
-from cpg_utils import Path
 from cpg_utils.config import config_retrieve, image_path
 from cpg_utils.hail_batch import get_batch
 from cpg_flow.utils import exists
@@ -9,6 +8,7 @@ from cpg_flow.utils import exists
 if TYPE_CHECKING:
     from hailtop.batch.job import Job
     from cpg_flow.targets import SequencingGroup
+    from cpg_utils import Path
 
 
 def family_vcf_from_gvcf(family_members: list['SequencingGroup'], out_path: str) -> 'Job':
