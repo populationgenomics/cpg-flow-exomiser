@@ -3,13 +3,13 @@ from typing import TYPE_CHECKING
 import pandas as pd
 
 from cpg_utils import Path
-from cpg_flow.utils import exists
+from cpg_flow import utils, targets
 
 if TYPE_CHECKING:
     from cpg_flow.targets.sequencing_group import SequencingGroup
 
 
-def extract_mini_ped_files(proband_dict: dict[str, list['SequencingGroup']], out_paths: dict[str, Path]):
+def extract_mini_ped_files(proband_dict: dict[str, list[targets.SequencingGroup]], out_paths: dict[str, Path]):
     """
     write the mini-ped for each family
 
@@ -23,7 +23,7 @@ def extract_mini_ped_files(proband_dict: dict[str, list['SequencingGroup']], out
 
         ped_path = out_paths[proband_id]
         # don't recreate if it exists
-        if not exists(ped_path):
+        if not utils.exists(ped_path):
             # make the pedigree for this family
             ped_df = pd.DataFrame([sg.pedigree.get_ped_dict() for sg in members])
             with ped_path.open('w') as ped_file:

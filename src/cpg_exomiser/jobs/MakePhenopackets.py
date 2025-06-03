@@ -1,17 +1,13 @@
 import json
-from typing import TYPE_CHECKING
 
 from cpg_utils import Path
-from cpg_flow.utils import exists
-
-if TYPE_CHECKING:
-    from cpg_flow.targets import SequencingGroup
+from cpg_flow import utils, targets
 
 
 HPO_KEY: str = 'HPO Terms (present)'
 
 
-def make_phenopackets(proband_dict: dict[str, list['SequencingGroup']], out_paths: dict[str, Path]):
+def make_phenopackets(proband_dict: dict[str, list[targets.SequencingGroup]], out_paths: dict[str, Path]):
     """
     find the minimal data to run an exomiser analysis
     n.b. these are not actually phenopackets - they are a simplified version
@@ -24,7 +20,7 @@ def make_phenopackets(proband_dict: dict[str, list['SequencingGroup']], out_path
     for proband, members in proband_dict.items():
 
         # skip if already done
-        if exists(out_paths[proband]):
+        if utils.exists(out_paths[proband]):
             continue
 
         # get all affected and unaffected

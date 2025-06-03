@@ -1,15 +1,27 @@
 from typing import TYPE_CHECKING
-from cpg_utils.config import config_retrieve, image_path, reference_path
-from cpg_utils.hail_batch import get_batch
 
-from cpg_flow.utils import chunks
+from cpg_utils import config, hail_batch
+from cpg_flow import utils
 
 
 if TYPE_CHECKING:
-    from hailtop.batch.job import Job
+    from hailtop.batch.job import BashJob
 
 
-def run_exomiser(content_dict: dict) -> list['Job']:
+def make_an_exomiser_job(name: str) -> 'BashJob':
+    """
+    Sets up a single job with the given title, and returns it.
+    """
+    job = hail_batch.get_batch().new_bash_job(name=name)
+    job.storage(config.config_retrieve(['workflow', 'exomiser_storage']))
+    job.memory(config.config_retrieve(['workflow', 'exomiser_memory']))
+    job.cpu(config.config_retrieve(['workflow', 'exomiser_cpu']))
+    job.image(config.config_retrieve(['images', 'exomiser_14']))
+
+    return job
+
+
+def run_exomiser(content_dict: dict) -> list['BashJob']:
     """
     run jobs through Exomiser 14
 
@@ -20,28 +32,25 @@ def run_exomiser(content_dict: dict) -> list['Job']:
 
     """
 
-    exomiser_version = image_path('exomiser_14').split(':')[-1]
+    exomiser_version = config.config_retrieve(['images', 'exomiser_14']).split(':')[-1]
     exomiser_dir = f'/exomiser/exomiser-cli-{exomiser_version}'
 
+    chunks_per_vm: int = config.config_retrieve(['workflow', 'exomiser_chunk_size'], 8)
+    chunks_in_parallel: int = config.config_retrieve(['workflow', 'exomiser_parallel_chunks'], 4)
+
     # localise the compressed exomiser references
-    inputs = get_batch().read_input_group(
-        core=reference_path('exomiser_2402_core'),
-        pheno=reference_path('exomiser_2402_pheno'),
+    inputs = hail_batch.get_batch().read_input_group(
+        core=config.reference_path('exomiser_2402_core'),
+        pheno=config.reference_path('exomiser_2402_pheno'),
     )
 
     # now chunk the jobs - load resources, then run a bunch of families
     probands = sorted(content_dict.keys())
     all_jobs = []
-    for chunk_number, proband_chunk in enumerate(
-        chunks(probands, config_retrieve(['workflow', 'exomiser_chunk_size'], 8)),
-    ):
+    for chunk_number, proband_chunk in enumerate(utils.chunks(probands, chunks_per_vm)):
         # see https://exomiser.readthedocs.io/en/latest/installation.html#linux-install
-        job = get_batch().new_bash_job(f'Run Exomiser for chunk {chunk_number}')
+        job = make_an_exomiser_job(f'Run Exomiser for chunk {chunk_number}')
         all_jobs.append(job)
-        job.storage(config_retrieve(['workflow', 'exomiser_storage'], '100Gi'))
-        job.memory(config_retrieve(['workflow', 'exomiser_memory'], '60Gi'))
-        job.cpu(config_retrieve(['workflow', 'exomiser_cpu'], 4))
-        job.image(image_path('exomiser_14'))
 
         # unpack references, see linux-install link above
         job.command(rf'unzip {inputs}/\* -d "{exomiser_dir}/data"')
@@ -50,13 +59,10 @@ def run_exomiser(content_dict: dict) -> list['Job']:
 
         # number of chunks should match cpu, accessible in config
         # these will all run simultaneously using backgrounded tasks and a wait
-        for parallel_chunk in chunks(
-            proband_chunk,
-            chunk_size=config_retrieve(['workflow', 'exomiser_parallel_chunks'], 4),
-        ):
+        for parallel_chunk in utils.chunks(proband_chunk, chunk_size=chunks_in_parallel):
             for proband in parallel_chunk:
                 # read in VCF & index
-                vcf = get_batch().read_input_group(
+                vcf = hail_batch.get_batch().read_input_group(
                     **{
                         f'{proband}_vcf': content_dict[proband]['vcf'],
                         f'{proband}_vcf_index': f'{content_dict[proband]["vcf"]}.tbi',
@@ -64,8 +70,8 @@ def run_exomiser(content_dict: dict) -> list['Job']:
                 )[f'{proband}_vcf']
 
                 # read in ped & phenotype JSON
-                ped = get_batch().read_input(content_dict[proband]['ped'])
-                ppk = get_batch().read_input(content_dict[proband]['pheno'])
+                ped = hail_batch.get_batch().read_input(content_dict[proband]['ped'])
+                ppk = hail_batch.get_batch().read_input(content_dict[proband]['pheno'])
 
                 # # this was really satisfying syntax to work out
                 job.declare_resource_group(
@@ -98,7 +104,7 @@ def run_exomiser(content_dict: dict) -> list['Job']:
                 job.command(f'mv results/{proband}.genes.tsv {job[proband]["tsv"]}')
                 job.command(f'mv results/{proband}.variants.tsv {job[proband]["variants.tsv"]}')
 
-                get_batch().write_output(
+                hail_batch.get_batch().write_output(
                     job[proband],
                     str(content_dict[proband]['output']).removesuffix('.tsv'),
                 )
