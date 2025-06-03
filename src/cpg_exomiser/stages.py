@@ -21,8 +21,6 @@ from cpg_exomiser.jobs.MakePhenopackets import make_phenopackets
 from cpg_exomiser.jobs.MakePedExtracts import extract_mini_ped_files
 from cpg_exomiser.jobs.RunExomiser import run_exomiser
 
-from cpg_exomiser.scripts import combine_exomiser_gene_tsvs, combine_exomiser_variant_tsvs
-
 from cpg_exomiser.utils import find_seqr_projects, find_probands, find_previous_analyses
 
 from cpg_flow.stage import DatasetStage, SequencingGroupStage, stage
@@ -252,7 +250,7 @@ class CombineExomiserGeneTsvs(DatasetStage):
         job.storage('10Gi')
         job.image(config_retrieve(['workflow', 'driver_image']))
         job.command(f"""
-            {combine_exomiser_gene_tsvs.__file__}
+            python -m cpg_exomiser.scripts.combine_exomiser_gene_tsvs 
             --project {project} \
             --input {" ".join(local_files)} \
             --output {job.output}
@@ -302,7 +300,13 @@ class CombineExomiserVariantTsvs(DatasetStage):
         job.image(config_retrieve(['workflow', 'driver_image']))
 
         # generate the outputs
-        job.command(f'{combine_exomiser_variant_tsvs.__file__} --input {" ".join(family_files)} --output {job.output}')
+        job.command(
+            f"""
+            python -m cpg_exomiser.scripts.combine_exomiser_variant_tsvs \\
+            --input {" ".join(family_files)} \\
+            --output {job.output}')
+            """
+        )
 
         # tar the Hail Table so we can remove as a single file
         job.command(f'tar --remove-files -cf {job.output}.ht.tar {job.output}.ht')
