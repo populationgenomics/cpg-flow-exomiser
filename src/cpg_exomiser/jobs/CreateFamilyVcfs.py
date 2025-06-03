@@ -1,17 +1,13 @@
-
 from typing import TYPE_CHECKING
 
-from cpg_utils.config import config_retrieve, image_path
-from cpg_utils.hail_batch import get_batch
-from cpg_flow.utils import exists
+from cpg_flow import targets, utils
+from cpg_utils import hail_batch, config, Path
 
 if TYPE_CHECKING:
-    from hailtop.batch.job import Job
-    from cpg_flow.targets import SequencingGroup
-    from cpg_utils import Path
+    from hailtop.batch.job import BashJob
 
 
-def family_vcf_from_gvcf(family_members: list['SequencingGroup'], out_path: str) -> 'Job':
+def family_vcf_from_gvcf(family_members: list[targets.SequencingGroup], out_path: str) -> 'BashJob':
     """
     Does a quick blast of gVCF -> VCF
     Strips out ref-only sites, and splits Alt, Non_Ref into just Alt
@@ -26,15 +22,15 @@ def family_vcf_from_gvcf(family_members: list['SequencingGroup'], out_path: str)
     """
 
     family_ids = [sg.id for sg in family_members]
-    job = get_batch().new_job(f'Generate VCF {out_path} from {family_ids}')
-    job.image(image_path('bcftools'))
+    job = hail_batch.get_batch().new_bash_job(f'Generate VCF {out_path} from {family_ids}')
+    job.image(config.config_retrieve(['images', 'bcftools']))
 
     # for genomes, we need a bit more storage, exomes the 5GB default is fine
-    if config_retrieve(['workflow', 'sequencing_type']) == 'genome':
+    if config.config_retrieve(['workflow', 'sequencing_type']) == 'genome':
         job.storage('10Gi')
 
     # read input
-    family_vcfs = [get_batch().read_input(sg.gvcf) for sg in family_members]
+    family_vcfs = [hail_batch.get_batch().read_input(sg.gvcf) for sg in family_members]
 
     # declare a resource group
     job.declare_resource_group(output={'vcf.bgz': '{root}.vcf.bgz', 'vcf.bgz.tbi': '{root}.vcf.bgz.tbi'})
@@ -46,13 +42,15 @@ def family_vcf_from_gvcf(family_members: list['SequencingGroup'], out_path: str)
     if len(family_vcfs) == 1:
         gvcf_input = family_vcfs[0]
         job.command(
-            f'bcftools view -m3 {gvcf_input} | '
-            f'bcftools norm -m -any | '
-            f'grep -v NON_REF | '
-            f'bgzip -c  > {job.output["vcf.bgz"]}',
+            f"""
+            bcftools view -m3 {gvcf_input} | \\
+            bcftools norm -m -any | \\
+            grep -v NON_REF | \\
+            bgzip -c  > {job.output["vcf.bgz"]}
+            """
         )
         job.command(f'tabix {job.output["vcf.bgz"]}')
-        get_batch().write_output(job.output, out_path.removesuffix('.vcf.bgz'))
+        hail_batch.get_batch().write_output(job.output, out_path.removesuffix('.vcf.bgz'))
         return job
 
     # if there are multiple members, convert and merge them
@@ -71,15 +69,15 @@ def family_vcf_from_gvcf(family_members: list['SequencingGroup'], out_path: str)
     # -Oz to write a compressed VCF
     job.command(f'bcftools merge {" ".join(paths)} -Oz -o {job.output["vcf.bgz"]} --threads 4 -m all -0')
     job.command(f'tabix {job.output["vcf.bgz"]}')
-    get_batch().write_output(job.output, out_path.removesuffix('.vcf.bgz'))
+    hail_batch.get_batch().write_output(job.output, out_path.removesuffix('.vcf.bgz'))
     return job
 
 
 def create_gvcf_to_vcf_jobs(
-    proband_dict: dict[str, list['SequencingGroup']],
+    proband_dict: dict[str, list[targets.SequencingGroup]],
     previous_completions: set[str],
-    out_paths: dict[str, 'Path'],
-) -> list['Job']:
+    out_paths: dict[str, Path],
+) -> list['BashJob']:
     """
     Create Joint VCFs for families of SG IDs
 
@@ -91,13 +89,13 @@ def create_gvcf_to_vcf_jobs(
         list of Jobs
     """
 
-    jobs: list['Job'] = []
+    jobs = []
 
     # take each family
     for proband, members in proband_dict.items():
 
         # skip if already done
-        if exists(out_paths[proband]) or proband in previous_completions:
+        if utils.exists(out_paths[proband]) or proband in previous_completions:
             continue
 
         jobs.append(family_vcf_from_gvcf(members, out_paths[proband]))

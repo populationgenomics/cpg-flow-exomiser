@@ -1,6 +1,4 @@
-# Any analysis-runner driver image must at least include git.
-
-FROM australia-southeast1-docker.pkg.dev/cpg-common/images/cpg_hail:0.2.134.cpg1 AS basic
+FROM australia-southeast1-docker.pkg.dev/cpg-common/images/cpg_hail_gcloud:0.2.134.cpg2-1
 
 ENV PYTHONDONTWRITEBYTECODE=1
 
