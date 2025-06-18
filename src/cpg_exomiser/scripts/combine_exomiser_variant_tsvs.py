@@ -11,7 +11,6 @@ from collections import defaultdict
 from csv import DictReader
 
 import hail as hl
-
 from cpg_utils import to_path
 
 ORDERED_ALLELES: list[str] = [f'chr{x}' for x in list(range(1, 23))] + ['chrX', 'chrY', 'chrM']
@@ -46,10 +45,8 @@ def process_tsv(tsv_path: str) -> tuple[PROBAND_DICT, VAR_DICT]:
     with file_as_path.open() as handle:
         reader = DictReader(handle, delimiter='\t')
         for row in reader:
-            assert isinstance(row, dict)
-
             # Exomiser contains "MT" on all genome builds, which Hail does not accept. Overrule this behaviour.
-            contig = row["CONTIG"]
+            contig = row['CONTIG']
             if contig == 'MT':
                 contig = 'M'
 
@@ -102,14 +99,8 @@ def process_and_sort_variants(all_variants: VAR_DICT) -> list[dict]:
     return sorted(all_vars, key=lambda x: (ORDERED_ALLELES.index(x['contig']), x['position']))
 
 
-def munge_into_hail_table(all_variants: VAR_DICT, output_path: str):
-    """
-    Reformat and sort the data into a Hail Table
-
-    Args:
-        all_variants ():
-        output_path ():
-    """
+def munge_into_hail_table(all_variants: VAR_DICT, output_path: str) -> None:
+    """Reformat and sort the data into a Hail Table."""
 
     # process the data into a list of dicts
     var_data = process_and_sort_variants(all_variants)
@@ -139,7 +130,7 @@ def munge_into_hail_table(all_variants: VAR_DICT, output_path: str):
     ht.show()
 
 
-def main(input_tsvs: list[str], output_path: str, as_hail: bool = True):
+def main(input_tsvs: list[str], output_path: str, as_hail: bool = True) -> None:
     """
     Combine the per-proband TSVs into a single JSON file, and write as a Hail Table
 
@@ -167,7 +158,7 @@ def main(input_tsvs: list[str], output_path: str, as_hail: bool = True):
         munge_into_hail_table(variant_dictionary, output_path)
 
 
-def cli_main():
+def cli_main() -> None:
     parser = ArgumentParser()
     parser.add_argument('--input', help='Path to the Variant result TSVs', nargs='+', required=True)
     parser.add_argument('--output', help='Where to write the output, extended as .json and .ht', required=True)

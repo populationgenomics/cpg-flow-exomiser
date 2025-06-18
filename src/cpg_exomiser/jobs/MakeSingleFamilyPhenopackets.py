@@ -1,13 +1,15 @@
 import json
 
+from cpg_flow import targets, utils
 from cpg_utils import Path
-from cpg_flow import utils, targets
-
 
 HPO_KEY: str = 'HPO Terms (present)'
 
 
-def make_phenopackets(proband_dict: dict[str, list[targets.SequencingGroup]], out_paths: dict[str, Path]):
+def make_phenopackets(
+    proband_dict: dict[str, list[targets.SequencingGroup]],
+    out_paths: dict[str, Path],
+) -> None:
     """
     find the minimal data to run an exomiser analysis
     n.b. these are not actually phenopackets - they are a simplified version

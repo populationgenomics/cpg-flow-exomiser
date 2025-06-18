@@ -1,10 +1,12 @@
 import pandas as pd
-
+from cpg_flow import targets, utils
 from cpg_utils import Path
-from cpg_flow import utils, targets
 
 
-def extract_mini_ped_files(proband_dict: dict[str, list[targets.SequencingGroup]], out_paths: dict[str, Path]):
+def extract_mini_ped_files(
+    proband_dict: dict[str, list[targets.SequencingGroup]],
+    out_paths: dict[str, Path],
+) -> None:
     """
     write the mini-ped for each family
 

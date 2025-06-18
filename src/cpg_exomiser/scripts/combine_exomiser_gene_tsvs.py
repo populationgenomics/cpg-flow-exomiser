@@ -8,12 +8,11 @@ import re
 from argparse import ArgumentParser
 from csv import DictReader
 
-
 # detect "OMIM:12345" or "ORPHA:12345"
 DISEASE_RE = re.compile(r'((?:OMIM|ORPHA):\d+)')
 
 
-def main(project: str, input_files: list[str], p_threshold: float = 0.05):
+def main(project: str, input_files: list[str], p_threshold: float = 0.05) -> list[list[str]]:
     """
     Collect all the dataset TSVs and save them in a single file
     Embellish the data with the mapping and project name
@@ -82,8 +81,7 @@ def main(project: str, input_files: list[str], p_threshold: float = 0.05):
     return output_lines
 
 
-def cli_main():
-
+def cli_main() -> None:
     parser = ArgumentParser()
     parser.add_argument('--project', help='Name of Seqr Project')
     parser.add_argument('--input', help='All input files', nargs='+')

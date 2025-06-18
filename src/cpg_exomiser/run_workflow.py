@@ -11,7 +11,7 @@ from cpg_flow.workflow import run_workflow
 from cpg_exomiser.stages import CombineExomiserGeneTsvs, CombineExomiserVariantTsvs
 
 
-def cli_main():
+def cli_main() -> None:
     """
     CLI entrypoint - starts up the workflow
     """

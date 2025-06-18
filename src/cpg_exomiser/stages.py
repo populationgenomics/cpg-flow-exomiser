@@ -8,22 +8,19 @@ As a dataset Stage
 - run exomiser, multiple families per setup
 """
 
+from cpg_flow import stage, targets
+from cpg_utils import Path, config, hail_batch
 from loguru import logger
 
-from cpg_utils import config, Path, hail_batch
+from cpg_exomiser.jobs.CombineExomiserGeneTsvs import make_combine_exomiser_gene_tsvs_job
+from cpg_exomiser.jobs.CombineExomiserVariantTsvs import make_combine_exomiser_variant_tsvs_job
+from cpg_exomiser.jobs.MakeSingleFamilyPedFiles import extract_mini_ped_files
+from cpg_exomiser.jobs.MakeSingleFamilyPhenopackets import make_phenopackets
 
 # import job logic per-stage
 from cpg_exomiser.jobs.MakeSingleFamilyVcfs import create_gvcf_to_vcf_jobs
-from cpg_exomiser.jobs.MakeSingleFamilyPhenopackets import make_phenopackets
-from cpg_exomiser.jobs.MakeSingleFamilyPedFiles import extract_mini_ped_files
 from cpg_exomiser.jobs.RunExomiser import run_exomiser
-from cpg_exomiser.jobs.CombineExomiserGeneTsvs import make_combine_exomiser_gene_tsvs_job
-from cpg_exomiser.jobs.CombineExomiserVariantTsvs import make_combine_exomiser_variant_tsvs_job
-
-from cpg_exomiser.utils import find_seqr_projects, find_probands, find_previous_analyses
-
-from cpg_flow import stage, targets
-
+from cpg_exomiser.utils import find_previous_analyses, find_probands, find_seqr_projects
 
 EXOMISER_ANALYSIS_TYPE = 'exomiser'
 
@@ -61,7 +58,7 @@ class MakeSingleFamilyPhenopackets(stage.DatasetStage):
     for each relevant family, make some Phenopackets
     """
 
-    def expected_outputs(self, dataset: targets.Dataset):
+    def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
         dataset_prefix = dataset.analysis_prefix() / 'exomiser_inputs'
         return {proband: dataset_prefix / f'{proband}_phenopacket.json' for proband in find_probands(dataset)}
 
@@ -84,7 +81,7 @@ class MakeSingleFamilyPedFiles(stage.DatasetStage):
     from the dataset MT, we make a PED per-proband
     """
 
-    def expected_outputs(self, dataset: targets.Dataset):
+    def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
         dataset_prefix = dataset.analysis_prefix() / 'exomiser_inputs'
         return {proband: dataset_prefix / f'{proband}.ped' for proband in find_probands(dataset)}
 
@@ -121,7 +118,7 @@ class RunExomiser(stage.DatasetStage):
     we could if it was a stage.SequencingGroupStage, but it's not
     """
 
-    def expected_outputs(self, dataset: targets.Dataset):
+    def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
         """
         dict of outputs for this dataset, keyed on family ID
         """
@@ -253,7 +250,7 @@ class CombineExomiserVariantTsvs(stage.DatasetStage):
     Parse the Exomiser variant-level results into a JSON file and a Hail Table
     """
 
-    def expected_outputs(self, dataset: targets.Dataset):
+    def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
         prefix = dataset.analysis_prefix() / stage.get_workflow().output_version
 
         return {

@@ -4,14 +4,11 @@ utilities methods for interacting with metamist and detecting pedigrees in an an
 
 from functools import cache
 
+from cpg_flow import targets
+from cpg_utils import config, to_path
 from loguru import logger
-
 from metamist.apis import ProjectApi
 from metamist.graphql import gql, query
-
-from cpg_utils import to_path, config
-from cpg_flow import targets
-
 
 # GraphQl query for all analysis entries in this Dataset of type: exomiser
 # this is used to find the exomiser results for the current dataset
