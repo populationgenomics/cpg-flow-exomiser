@@ -2,21 +2,15 @@
 utilities methods for interacting with metamist and detecting pedigrees in an analysis
 """
 
-
 from functools import cache
-from typing import TYPE_CHECKING
 
 from loguru import logger
 
 from metamist.apis import ProjectApi
 from metamist.graphql import gql, query
 
-from cpg_utils import to_path
-from cpg_utils.config import config_retrieve
-
-
-if TYPE_CHECKING:
-    from cpg_flow.targets import Dataset, SequencingGroup
+from cpg_utils import to_path, config
+from cpg_flow import targets
 
 
 # GraphQl query for all analysis entries in this Dataset of type: exomiser
@@ -44,7 +38,7 @@ def find_seqr_projects() -> dict[str, str]:
     """
 
     project_api = ProjectApi()
-    seq_type = config_retrieve(['workflow', 'sequencing_type'])
+    seq_type = config.config_retrieve(['workflow', 'sequencing_type'])
     seq_type_key = f'seqr-project-{seq_type}'
     return_dict: dict[str, str] = {}
 
@@ -80,7 +74,7 @@ def find_previous_analyses(dataset: str) -> set[str]:
 
 
 @cache
-def find_probands(dataset: 'Dataset') -> dict[str, list['SequencingGroup']]:
+def find_probands(dataset: targets.Dataset) -> dict[str, list[targets.SequencingGroup]]:
     """
     Find all the families in the project
     group on family ID and check for affected individuals & HPO terms
@@ -98,7 +92,7 @@ def find_probands(dataset: 'Dataset') -> dict[str, list['SequencingGroup']]:
         dict[str, list[SequencingGroup]]: a dictionary of affected individuals to all family members
     """
 
-    dict_by_family: dict[str, list['SequencingGroup']] = {}
+    dict_by_family: dict[str, list[targets.SequencingGroup]] = {}
     for sg in dataset.get_sequencing_groups():
         # skip over members without a gVCF - unusable in this analysis
         if sg.gvcf is None:
@@ -106,11 +100,10 @@ def find_probands(dataset: 'Dataset') -> dict[str, list['SequencingGroup']]:
         family_id = str(sg.pedigree.fam_id)
         dict_by_family.setdefault(family_id, []).append(sg)
 
-    dict_of_affecteds: dict[str, list['SequencingGroup']] = {}
+    dict_of_affecteds: dict[str, list[targets.SequencingGroup]] = {}
 
     # now remove families with no affected individuals
     for family, members in dict_by_family.items():
-
         # check for at least one retained member
         affected = [sg for sg in members if str(sg.pedigree.phenotype) == '2']
 
