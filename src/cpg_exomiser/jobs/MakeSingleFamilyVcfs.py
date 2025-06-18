@@ -46,7 +46,7 @@ def family_vcf_from_gvcf(family_members: list[targets.SequencingGroup], out_path
             bcftools view -m3 {gvcf_input} | \\
             bcftools norm -m -any | \\
             grep -v NON_REF | \\
-            bgzip -c  > {job.output["vcf.bgz"]}
+            bgzip -c  > {job.output['vcf.bgz']}
             """
         )
         job.command(f'tabix {job.output["vcf.bgz"]}')
@@ -93,7 +93,6 @@ def create_gvcf_to_vcf_jobs(
 
     # take each family
     for proband, members in proband_dict.items():
-
         # skip if already done
         if utils.exists(out_paths[proband]) or proband in previous_completions:
             continue

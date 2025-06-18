@@ -1,12 +1,7 @@
-from typing import TYPE_CHECKING
-
 import pandas as pd
 
 from cpg_utils import Path
 from cpg_flow import utils, targets
-
-if TYPE_CHECKING:
-    from cpg_flow.targets.sequencing_group import SequencingGroup
 
 
 def extract_mini_ped_files(proband_dict: dict[str, list[targets.SequencingGroup]], out_paths: dict[str, Path]):
@@ -20,7 +15,6 @@ def extract_mini_ped_files(proband_dict: dict[str, list[targets.SequencingGroup]
 
     # query for SG entities, group by family
     for proband_id, members in proband_dict.items():
-
         ped_path = out_paths[proband_id]
         # don't recreate if it exists
         if not utils.exists(ped_path):

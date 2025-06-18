@@ -18,7 +18,6 @@ def make_phenopackets(proband_dict: dict[str, list[targets.SequencingGroup]], ou
     """
 
     for proband, members in proband_dict.items():
-
         # skip if already done
         if utils.exists(out_paths[proband]):
             continue
