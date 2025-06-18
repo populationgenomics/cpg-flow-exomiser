@@ -6,7 +6,7 @@ This is the main entry point for the workflow.
 
 from argparse import ArgumentParser
 
-from cpg_flow.workflow import run_workflow
+from cpg_flow import workflow
 
 from cpg_exomiser.stages import CombineExomiserGeneTsvs, CombineExomiserVariantTsvs
 
@@ -21,7 +21,7 @@ def cli_main() -> None:
 
     stages = [CombineExomiserGeneTsvs, CombineExomiserVariantTsvs]
 
-    run_workflow(stages=stages, dry_run=args.dry_run)
+    workflow.run_workflow(stages=stages, dry_run=args.dry_run)
 
 
 if __name__ == '__main__':
