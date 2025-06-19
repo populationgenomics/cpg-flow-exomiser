@@ -15,7 +15,7 @@ def make_an_exomiser_job(name: str) -> 'BashJob':
     job.storage(config.config_retrieve(['workflow', 'exomiser_storage']))
     job.memory(config.config_retrieve(['workflow', 'exomiser_memory']))
     job.cpu(config.config_retrieve(['workflow', 'exomiser_cpu']))
-    job.image(config.config_retrieve(['images', 'exomiser_14']))
+    job.image(config.config_retrieve(['images', 'exomiser']))
 
     return job
 
@@ -31,7 +31,7 @@ def run_exomiser(content_dict: dict) -> list['BashJob']:
 
     """
 
-    exomiser_version = config.config_retrieve(['images', 'exomiser_14']).split(':')[-1]
+    exomiser_version = config.config_retrieve(['images', 'exomiser']).split(':')[-1]
     exomiser_dir = f'/exomiser/exomiser-cli-{exomiser_version}'
 
     chunks_per_vm: int = config.config_retrieve(['workflow', 'exomiser_chunk_size'], 8)

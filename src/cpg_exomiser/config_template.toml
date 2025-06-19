@@ -22,3 +22,7 @@ exomiser_parallel_chunks = 4
 
 # used to make sure we don't repeat previously completed stages
 check_expected_outputs = true
+
+[images]
+bcftools = "australia-southeast1-docker.pkg.dev/cpg-common/images/bcftools_120:1.20-1"
+exomiser = "australia-southeast1-docker.pkg.dev/cpg-common/images/exomiser_14:14.0.0-1"
