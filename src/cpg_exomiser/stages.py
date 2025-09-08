@@ -229,6 +229,7 @@ class RegisterSingleSampleExomiserResults(stage.SequencingGroupStage):
 @stage.stage(
     required_stages=[RunExomiser],
     analysis_type='exomiser',
+    analysis_keys=['tsv'],
     update_analysis_meta=exomiser_version_callable,
 )
 class CombineExomiserGeneTsvs(stage.DatasetStage):
