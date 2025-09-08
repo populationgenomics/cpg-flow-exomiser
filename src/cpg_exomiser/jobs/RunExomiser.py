@@ -44,6 +44,17 @@ def run_exomiser(content_dict: dict) -> list['BashJob']:
         job = make_an_exomiser_job(f'Run Exomiser for chunk {chunk_number}')
         all_jobs.append(job)
 
+        # create the application.properties file, responsive to version ARGs
+        # this used to be baked into the Dockerfile, but that approach doesn't provide flexibility to alter data ver.
+        job.command(f"""
+echo "exomiser.data-directory=/exomiser/${{EXOMISER_STEM}}/data" > /exomiser/${{EXOMISER_STEM}}/application.properties
+echo "exomiser.hg38.data-version={EXOMISER_DATA_VERSION}" >> /exomiser/${{EXOMISER_STEM}}/application.properties
+echo "exomiser.phenotype.data-version={EXOMISER_DATA_VERSION}" >> /exomiser/${{EXOMISER_STEM}}/application.properties
+echo "exomiser.hg38.clin-var-data-version={EXOMISER_DATA_VERSION}" >> /exomiser/${{EXOMISER_STEM}}/application.properties
+echo "exomiser.hg38.use-clinvar-white-list=true" >> /exomiser/${{EXOMISER_STEM}}/application.properties
+echo "logging.level.com.zaxxer.hikari=ERROR" >> /exomiser/${{EXOMISER_STEM}}/application.properties
+""")
+
         # unpack references, see linux-install link above
         job.command(rf'unzip {inputs}/\* -d "{exomiser_dir}/data"')
 
