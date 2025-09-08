@@ -97,5 +97,5 @@ def create_gvcf_to_vcf_jobs(
         if utils.exists(out_paths[proband]) or proband in previous_completions:
             continue
 
-        jobs.append(family_vcf_from_gvcf(members, out_paths[proband]))
+        jobs.append(family_vcf_from_gvcf(members, str(out_paths[proband])))
     return jobs

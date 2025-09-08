@@ -23,15 +23,7 @@ def make_an_exomiser_job(name: str) -> 'BashJob':
 
 
 def run_exomiser(content_dict: dict) -> list['BashJob']:
-    """
-    run jobs through Exomiser 14
-
-    Args:
-        content_dict ():
-
-    Returns:
-
-    """
+    """Run Exomiser."""
 
     exomiser_dir = f'/exomiser/exomiser-cli-{EXOMISER_VERSION}'
 

@@ -210,7 +210,7 @@ class RegisterSingleSampleExomiserResults(stage.SequencingGroupStage):
     def queue_jobs(self, sequencing_group: targets.SequencingGroup, inputs: stage.StageInput) -> stage.StageOutput:
         """
         get the dictionary of all probands to generate an analysis for
-        if an entry in that dict exists for this SG ID, create a ghost job to get it registered in metamist
+        if an entry in that dict exists for this SG ID, create a ghost job to get it registered in metamist.
         metamist/status_reporter registrations won't run unless there's a job in the Stage
         """
 
