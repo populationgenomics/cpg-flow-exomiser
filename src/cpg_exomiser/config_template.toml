@@ -2,6 +2,9 @@
 name = 'exomiser'
 status_reporter = 'metamist'
 
+exomiser_version = '14.1.0'
+exomiser_data_version = '2502'
+
 # in addition to these fields, you will need to supply input_cohorts, and a sequencing_type
 # cpg-flow will use this to query metamist, and set up the pipeline framework
 
@@ -24,5 +27,9 @@ exomiser_parallel_chunks = 4
 check_expected_outputs = true
 
 [images]
-bcftools = "australia-southeast1-docker.pkg.dev/cpg-common/images/bcftools_120:1.20-1"
-exomiser = "australia-southeast1-docker.pkg.dev/cpg-common/images/exomiser_14:14.0.0-1"
+bcftools = "australia-southeast1-docker.pkg.dev/cpg-common/images/bcftools:1.21-2"
+exomiser = "australia-southeast1-docker.pkg.dev/cpg-common/images/exomiser:14.1.0-1"
+
+[references]
+exomiser_2502_pheno = "gs://cpg-common-main/references/exomiser_2502/phenotype"
+exomiser_2502_core = "gs://cpg-common-main/references/exomiser_2502/core"

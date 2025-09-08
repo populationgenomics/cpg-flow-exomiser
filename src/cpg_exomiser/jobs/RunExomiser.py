@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 from cpg_flow import utils
 from cpg_utils import config, hail_batch
+from cpg_exomiser.utils import EXOMISER_VERSION, EXOMISER_DATA_VERSION
 
 if TYPE_CHECKING:
     from hailtop.batch.job import BashJob
@@ -31,16 +32,15 @@ def run_exomiser(content_dict: dict) -> list['BashJob']:
 
     """
 
-    exomiser_version = config.config_retrieve(['images', 'exomiser']).split(':')[-1]
-    exomiser_dir = f'/exomiser/exomiser-cli-{exomiser_version}'
+    exomiser_dir = f'/exomiser/exomiser-cli-{EXOMISER_VERSION}'
 
     chunks_per_vm: int = config.config_retrieve(['workflow', 'exomiser_chunk_size'], 8)
     chunks_in_parallel: int = config.config_retrieve(['workflow', 'exomiser_parallel_chunks'], 4)
 
     # localise the compressed exomiser references
     inputs = hail_batch.get_batch().read_input_group(
-        core=config.reference_path('exomiser_2402_core'),
-        pheno=config.reference_path('exomiser_2402_pheno'),
+        core=config.config_retrieve(['references', f'exomiser_{EXOMISER_DATA_VERSION}_core']),
+        pheno=config.config_retrieve(['references', f'exomiser_{EXOMISER_DATA_VERSION}_pheno']),
     )
 
     # now chunk the jobs - load resources, then run a bunch of families
@@ -89,7 +89,7 @@ def run_exomiser(content_dict: dict) -> list['BashJob']:
 
                 # now run it, as a backgrounded process
                 job.command(
-                    f'java -Xmx10g -Xms4g -jar {exomiser_dir}/exomiser-cli-{exomiser_version}.jar '
+                    f'java -Xmx10g -Xms4g -jar {exomiser_dir}/exomiser-cli-{EXOMISER_VERSION}.jar '
                     f'--analysis {job[proband]["yaml"]} --ped {ped} '
                     f'--spring.config.location={exomiser_dir}/application.properties &',
                 )

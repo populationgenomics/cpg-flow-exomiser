@@ -12,17 +12,29 @@ from cpg_flow import stage, targets
 from cpg_utils import Path, config, hail_batch
 from loguru import logger
 
+from functools import cache
+
 from cpg_exomiser.jobs.CombineExomiserGeneTsvs import make_combine_exomiser_gene_tsvs_job
 from cpg_exomiser.jobs.CombineExomiserVariantTsvs import make_combine_exomiser_variant_tsvs_job
 from cpg_exomiser.jobs.MakeSingleFamilyPedFiles import extract_mini_ped_files
 from cpg_exomiser.jobs.MakeSingleFamilyPhenopackets import make_phenopackets
 
-# import job logic per-stage
 from cpg_exomiser.jobs.MakeSingleFamilyVcfs import create_gvcf_to_vcf_jobs
 from cpg_exomiser.jobs.RunExomiser import run_exomiser
-from cpg_exomiser.utils import find_previous_analyses, find_probands, find_seqr_projects
+from cpg_exomiser.utils import (
+    find_previous_analyses,
+    find_probands,
+    find_seqr_projects,
+    EXOMISER_VERSION,
+    EXOMISER_DATA_VERSION,
+)
 
-EXOMISER_ANALYSIS_TYPE = 'exomiser'
+
+def exomiser_version_callable(output_path: str) -> dict[str, str]:
+    """Simple callable to populate analysis meta with this exact version (software and data release)."""
+    # trick the linter
+    _do_nothing_with = output_path
+    return {'exomiser_version': EXOMISER_VERSION, 'exomiser_data_version': EXOMISER_DATA_VERSION}
 
 
 @stage.stage
@@ -59,7 +71,7 @@ class MakeSingleFamilyPhenopackets(stage.DatasetStage):
     """
 
     def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
-        dataset_prefix = dataset.analysis_prefix() / 'exomiser_inputs'
+        dataset_prefix = dataset.tmp_prefix() / 'exomiser_inputs'
         return {proband: dataset_prefix / f'{proband}_phenopacket.json' for proband in find_probands(dataset)}
 
     def queue_jobs(self, dataset: targets.Dataset, inputs: stage.StageInput) -> stage.StageOutput:
@@ -82,7 +94,7 @@ class MakeSingleFamilyPedFiles(stage.DatasetStage):
     """
 
     def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
-        dataset_prefix = dataset.analysis_prefix() / 'exomiser_inputs'
+        dataset_prefix = dataset.tmp_prefix() / 'exomiser_inputs'
         return {proband: dataset_prefix / f'{proband}.ped' for proband in find_probands(dataset)}
 
     def queue_jobs(self, dataset: targets.Dataset, inputs: stage.StageInput) -> stage.StageOutput:
@@ -124,7 +136,9 @@ class RunExomiser(stage.DatasetStage):
         """
         proband_dict = find_probands(dataset)
 
-        dataset_prefix = dataset.analysis_prefix() / 'exomiser_results'
+        dataset_prefix = (
+            dataset.prefix() / 'exomiser' / EXOMISER_VERSION / EXOMISER_DATA_VERSION / 'single_sample_results'
+        )
 
         # only the TSVs are required, but we need the gene and variant level TSVs
         # populate gene-level results
@@ -163,7 +177,8 @@ class RunExomiser(stage.DatasetStage):
 @stage.stage(
     analysis_keys=['gene_level', 'variant_level'],
     required_stages=[RunExomiser],
-    analysis_type=EXOMISER_ANALYSIS_TYPE,
+    analysis_type='exomiser',
+    update_analysis_meta=exomiser_version_callable,
 )
 class RegisterSingleSampleExomiserResults(stage.SequencingGroupStage):
     """
@@ -183,7 +198,13 @@ class RegisterSingleSampleExomiserResults(stage.SequencingGroupStage):
         proband_dict = find_probands(sequencing_group.dataset)
         if sequencing_group.id not in proband_dict:
             return {}
-        output_prefix = sequencing_group.dataset.analysis_prefix() / 'exomiser_results'
+        output_prefix = (
+            sequencing_group.dataset.prefix()
+            / 'exomiser'
+            / EXOMISER_VERSION
+            / EXOMISER_DATA_VERSION
+            / 'single_sample_results'
+        )
         return {
             'gene_level': output_prefix / f'{sequencing_group.id}.tsv',
             'variant_level': output_prefix / f'{sequencing_group.id}.variants.tsv',
@@ -208,17 +229,28 @@ class RegisterSingleSampleExomiserResults(stage.SequencingGroupStage):
         return self.make_outputs(sequencing_group, jobs=ghost_job, data=outputs)
 
 
-@stage.stage(required_stages=[RunExomiser], analysis_type=EXOMISER_ANALYSIS_TYPE)
+@stage.stage(
+    required_stages=[RunExomiser],
+    analysis_type='exomiser',
+    update_analysis_meta=exomiser_version_callable,
+)
 class CombineExomiserGeneTsvs(stage.DatasetStage):
     """
     Parse the Exomiser results into a TSV for Seqr
     """
 
-    def expected_outputs(self, dataset: targets.Dataset) -> Path:
-        return dataset.analysis_prefix() / stage.get_workflow().output_version / 'exomiser_results.tsv'
+    def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
+        return {
+            'tsv': dataset.prefix()
+            / stage.get_workflow().output_version
+            / 'exomiser'
+            / EXOMISER_VERSION
+            / EXOMISER_DATA_VERSION
+            / 'exomiser_results.tsv'
+        }
 
     def queue_jobs(self, dataset: targets.Dataset, inputs: stage.StageInput) -> stage.StageOutput:
-        output = self.expected_outputs(dataset)
+        outputs = self.expected_outputs(dataset)
 
         # is there a seqr project?
         projects = find_seqr_projects()
@@ -233,17 +265,18 @@ class CombineExomiserGeneTsvs(stage.DatasetStage):
             dataset,
             input_files=results,
             project_id=projects[dataset.name],
-            output=output,
+            output=outputs['tsv'],
             job_attrs=self.get_job_attrs(dataset),
         )
 
-        return self.make_outputs(dataset, data=output, jobs=job)
+        return self.make_outputs(dataset, data=outputs, jobs=job)
 
 
 @stage.stage(
     required_stages=[RunExomiser],
-    analysis_type=EXOMISER_ANALYSIS_TYPE,
+    analysis_type='exomiser',
     analysis_keys=['json', 'ht'],
+    update_analysis_meta=exomiser_version_callable,
 )
 class CombineExomiserVariantTsvs(stage.DatasetStage):
     """
@@ -251,7 +284,13 @@ class CombineExomiserVariantTsvs(stage.DatasetStage):
     """
 
     def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
-        prefix = dataset.analysis_prefix() / stage.get_workflow().output_version
+        prefix = (
+            dataset.prefix()
+            / stage.get_workflow().output_version
+            / 'exomiser'
+            / EXOMISER_VERSION
+            / EXOMISER_DATA_VERSION
+        )
 
         return {
             'json': prefix / 'exomiser_variant_results.json',
