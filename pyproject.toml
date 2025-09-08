@@ -21,7 +21,7 @@ classifiers=[
 ]
 
 dependencies=[
-    'cpg-flow>=0.2.5',
+    'cpg-flow==0.3.2',
     'hatchling>=1.27.0',
 ]
 
@@ -51,19 +51,6 @@ include_package_data = true
 
 [options.package_data]
 'cpg_exomiser'=  ['config_template.toml']
-
-[tool.black]
-line-length = 120
-skip-string-normalization = true
-exclude = '''
-/(
-  venv
-  | \.mypy_cache
-  | \.venv
-  | build
-  | dist
-)/
-'''
 
 [tool.mypy]
 ignore_missing_imports = true
