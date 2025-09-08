@@ -30,7 +30,7 @@ def family_vcf_from_gvcf(family_members: list[targets.SequencingGroup], out_path
         job.storage('10Gi')
 
     # read input
-    family_vcfs = [hail_batch.get_batch().read_input(sg.gvcf) for sg in family_members]
+    family_vcfs = [hail_batch.get_batch().read_input(sg.gvcf.path) for sg in family_members]
 
     # declare a resource group
     job.declare_resource_group(output={'vcf.bgz': '{root}.vcf.bgz', 'vcf.bgz.tbi': '{root}.vcf.bgz.tbi'})
@@ -39,14 +39,14 @@ def family_vcf_from_gvcf(family_members: list[targets.SequencingGroup], out_path
     # norm -m -any to split Alt, Non_Ref into just Alt
     # grep -v NON_REF to remove the NON_REF sites
     # bgzip -c to write to a compressed file
-    if len(family_vcfs) == 1:
+    if len(family_members) == 1:
         gvcf_input = family_vcfs[0]
         job.command(
             f"""
             bcftools view -m3 {gvcf_input} | \\
             bcftools norm -m -any | \\
             grep -v NON_REF | \\
-            bgzip -c  > {job.output['vcf.bgz']}
+            bgzip -c > {job.output['vcf.bgz']}
             """
         )
         job.command(f'tabix {job.output["vcf.bgz"]}')
