@@ -1,24 +1,22 @@
 name: Docker
-
-## choose when this workflow runs
 on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       tag:
         description: 'Tag to use (defaults to "test")'
         default: "test"
 
-## to build with each push to main (following a PR)
-#  push:
-#    branches:
-#      - main
-
 permissions:
   id-token: write
   contents: read
 
 env:
-  VERSION: 0.1.0
+  VERSION: 0.1.1
 
 jobs:
   docker:

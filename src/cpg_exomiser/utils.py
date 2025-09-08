@@ -17,6 +17,7 @@ ANALYSIS_QUERY = gql(
 query MyQuery($dataset: String!, $analysis_type: String!) {
   project(name: $dataset) {
     analyses(type: {eq: $analysis_type}) {
+      meta
       outputs
     }
   }
@@ -25,6 +26,8 @@ query MyQuery($dataset: String!, $analysis_type: String!) {
 )
 HPO_KEY: str = 'HPO Terms (present)'
 EXOMISER_ANALYSIS_TYPE: str = 'exomiser'
+EXOMISER_VERSION = config.config_retrieve(['workflow', 'exomiser_version'])
+EXOMISER_DATA_VERSION = config.config_retrieve(['workflow', 'exomiser_data_version'])
 
 
 @cache
@@ -63,6 +66,11 @@ def find_previous_analyses(dataset: str) -> set[str]:
     for analysis in metamist_results['project']['analyses']:
         # uses the new metamist outputs formatted block
         if outputs := analysis['outputs']:
+            # sub-select analysis entries to the ones with this matching Exomiser version (software and data)
+            if (analysis['meta'].get('exomiser_version', None) != EXOMISER_VERSION) or (
+                analysis['meta'].get('exomiser_data_version', None) != EXOMISER_DATA_VERSION
+            ):
+                continue
             if isinstance(outputs, dict) and (nameroot := outputs.get('nameroot')):
                 completed_runs.add(nameroot)
             elif isinstance(outputs, str):

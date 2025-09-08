@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 WORKDIR /cpg_exomiser
 
 COPY src src/
-COPY pyproject.toml README.md ./
+COPY pyproject.toml LICENSE README.md ./
 
 # pip install but don't retain the cache files
 RUN pip install --no-cache-dir .
