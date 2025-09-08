@@ -31,5 +31,7 @@ bcftools = "australia-southeast1-docker.pkg.dev/cpg-common/images/bcftools:1.21-
 exomiser = "australia-southeast1-docker.pkg.dev/cpg-common/images/exomiser:14.1.0-1"
 
 [references]
+exomiser_2402_pheno = "gs://cpg-common-main/references/exomiser_2402/phenotype"
+exomiser_2402_core = "gs://cpg-common-main/references/exomiser_2402/core"
 exomiser_2502_pheno = "gs://cpg-common-main/references/exomiser_2502/phenotype"
 exomiser_2502_core = "gs://cpg-common-main/references/exomiser_2502/core"

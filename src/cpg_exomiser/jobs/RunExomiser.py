@@ -2,7 +2,8 @@ from typing import TYPE_CHECKING
 
 from cpg_flow import utils
 from cpg_utils import config, hail_batch
-from cpg_exomiser.utils import EXOMISER_VERSION, EXOMISER_DATA_VERSION
+
+from cpg_exomiser.utils import EXOMISER_DATA_VERSION, EXOMISER_VERSION
 
 if TYPE_CHECKING:
     from hailtop.batch.job import BashJob

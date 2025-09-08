@@ -12,21 +12,18 @@ from cpg_flow import stage, targets
 from cpg_utils import Path, config, hail_batch
 from loguru import logger
 
-from functools import cache
-
 from cpg_exomiser.jobs.CombineExomiserGeneTsvs import make_combine_exomiser_gene_tsvs_job
 from cpg_exomiser.jobs.CombineExomiserVariantTsvs import make_combine_exomiser_variant_tsvs_job
 from cpg_exomiser.jobs.MakeSingleFamilyPedFiles import extract_mini_ped_files
 from cpg_exomiser.jobs.MakeSingleFamilyPhenopackets import make_phenopackets
-
 from cpg_exomiser.jobs.MakeSingleFamilyVcfs import create_gvcf_to_vcf_jobs
 from cpg_exomiser.jobs.RunExomiser import run_exomiser
 from cpg_exomiser.utils import (
+    EXOMISER_DATA_VERSION,
+    EXOMISER_VERSION,
     find_previous_analyses,
     find_probands,
     find_seqr_projects,
-    EXOMISER_VERSION,
-    EXOMISER_DATA_VERSION,
 )
 
 
@@ -51,7 +48,7 @@ class MakeSingleFamilyVcfs(stage.DatasetStage):
         this now writes to a temporary bucket, we don't need these VCFs again in the future
         they cost more to keep than to regenerate
         """
-        prefix = dataset.tmp_prefix() / 'exomiser_inputs'
+        prefix = dataset.tmp_prefix() / 'exomiser' / 'inputs'
         return {proband: prefix / f'{proband}.vcf.bgz' for proband in find_probands(dataset)}
 
     def queue_jobs(self, dataset: targets.Dataset, inputs: stage.StageInput) -> stage.StageOutput:
@@ -71,7 +68,7 @@ class MakeSingleFamilyPhenopackets(stage.DatasetStage):
     """
 
     def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
-        dataset_prefix = dataset.tmp_prefix() / 'exomiser_inputs'
+        dataset_prefix = dataset.tmp_prefix() / 'exomiser' / 'inputs'
         return {proband: dataset_prefix / f'{proband}_phenopacket.json' for proband in find_probands(dataset)}
 
     def queue_jobs(self, dataset: targets.Dataset, inputs: stage.StageInput) -> stage.StageOutput:
@@ -94,7 +91,7 @@ class MakeSingleFamilyPedFiles(stage.DatasetStage):
     """
 
     def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
-        dataset_prefix = dataset.tmp_prefix() / 'exomiser_inputs'
+        dataset_prefix = dataset.tmp_prefix() / 'exomiser' / 'inputs'
         return {proband: dataset_prefix / f'{proband}.ped' for proband in find_probands(dataset)}
 
     def queue_jobs(self, dataset: targets.Dataset, inputs: stage.StageInput) -> stage.StageOutput:
