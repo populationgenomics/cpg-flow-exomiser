@@ -2,7 +2,7 @@
 name = 'exomiser'
 status_reporter = 'metamist'
 
-exomiser_version = '14.1.0'
+exomiser_version = '13.3.0'
 exomiser_data_version = '2502'
 
 # in addition to these fields, you will need to supply input_cohorts, and a sequencing_type
@@ -10,8 +10,8 @@ exomiser_data_version = '2502'
 
 # attributes to provision the Exomiser VMs
 # Much lower storage req. - CADD & REMM not in use
-exomiser_memory = '60Gi'
-exomiser_storage = '100Gi'
+exomiser_memory = '100Gi'
+exomiser_storage = '200Gi'
 exomiser_cpu = 4
 
 # number of exomiser jobs to fit onto each VM
@@ -25,7 +25,7 @@ check_expected_outputs = true
 
 [images]
 bcftools = "australia-southeast1-docker.pkg.dev/cpg-common/images/bcftools:1.21-2"
-exomiser = "australia-southeast1-docker.pkg.dev/cpg-common/images/exomiser:14.1.0-1"
+exomiser = "australia-southeast1-docker.pkg.dev/cpg-common/images/exomiser:13.3.0-1"
 
 [references]
 exomiser_2402_pheno = "gs://cpg-common-main/references/exomiser_2402/phenotype"
