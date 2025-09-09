@@ -240,8 +240,8 @@ class CombineExomiserGeneTsvs(stage.DatasetStage):
     def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
         return {
             'tsv': dataset.prefix()
-            / stage.get_workflow().output_version
             / 'exomiser'
+            / stage.get_workflow().output_version
             / EXOMISER_VERSION
             / EXOMISER_DATA_VERSION
             / 'exomiser_results.tsv'
@@ -284,8 +284,8 @@ class CombineExomiserVariantTsvs(stage.DatasetStage):
     def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
         prefix = (
             dataset.prefix()
-            / stage.get_workflow().output_version
             / 'exomiser'
+            / stage.get_workflow().output_version
             / EXOMISER_VERSION
             / EXOMISER_DATA_VERSION
         )
