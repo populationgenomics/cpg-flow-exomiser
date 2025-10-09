@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 
 from cpg_flow import workflow
 
-from cpg_exomiser.stages import CombineExomiserGeneTsvs, CombineExomiserVariantTsvs
+from cpg_exomiser.stages import CombineExomiserGeneTsvs, CombineExomiserVariantTsvs, RegisterSingleSampleExomiserResults
 
 
 def cli_main() -> None:
@@ -19,7 +19,7 @@ def cli_main() -> None:
     parser.add_argument('--dry_run', action='store_true', help='Dry run')
     args = parser.parse_args()
 
-    stages = [CombineExomiserGeneTsvs, CombineExomiserVariantTsvs]
+    stages = [CombineExomiserGeneTsvs, CombineExomiserVariantTsvs, RegisterSingleSampleExomiserResults]
 
     workflow.run_workflow(stages=stages, dry_run=args.dry_run)
 

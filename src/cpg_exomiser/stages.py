@@ -182,7 +182,7 @@ class RegisterSingleSampleExomiserResults(stage.SequencingGroupStage):
     this is a tricky little fella'
     The previous Stage, RunExomiser, runs per-Dataset, but writes output per-Proband
     The reason is that Exomiser instances are expensive (time and compute) to start up, so we start a few instances,
-    and really crush high numbers of samples through each VM. That's really cost effective, but it means that the
+    and really crush high numbers of samples through each VM. That's really cost-effective, but it means that the
     expected_outputs dict is populated at runtime, so the individual output files can't be entered into analysis_keys
     That means that we can't write the per-proband result entries to metamist, from the previous stage, so we do it here
     """
@@ -240,8 +240,8 @@ class CombineExomiserGeneTsvs(stage.DatasetStage):
     def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
         return {
             'tsv': dataset.prefix()
-            / stage.get_workflow().output_version
             / 'exomiser'
+            / stage.get_workflow().output_version
             / EXOMISER_VERSION
             / EXOMISER_DATA_VERSION
             / 'exomiser_results.tsv'
@@ -284,8 +284,8 @@ class CombineExomiserVariantTsvs(stage.DatasetStage):
     def expected_outputs(self, dataset: targets.Dataset) -> dict[str, Path]:
         prefix = (
             dataset.prefix()
-            / stage.get_workflow().output_version
             / 'exomiser'
+            / stage.get_workflow().output_version
             / EXOMISER_VERSION
             / EXOMISER_DATA_VERSION
         )
