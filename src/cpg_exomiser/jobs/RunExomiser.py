@@ -53,7 +53,7 @@ echo "exomiser.phenotype.data-version={EXOMISER_DATA_VERSION}" >> /exomiser/${{E
 echo "exomiser.hg38.clin-var-data-version={EXOMISER_DATA_VERSION}" >> /exomiser/${{EXOMISER_STEM}}/application.properties
 echo "exomiser.hg38.use-clinvar-white-list=true" >> /exomiser/${{EXOMISER_STEM}}/application.properties
 echo "logging.level.com.zaxxer.hikari=ERROR" >> /exomiser/${{EXOMISER_STEM}}/application.properties
-""")
+""")  # noqa: E501
 
         # unpack references, see linux-install link above
         job.command(rf'unzip {inputs}/\* -d "{exomiser_dir}/data"')
