@@ -60,12 +60,18 @@ def process_tsv(tsv_path: str) -> tuple[PROBAND_DICT, VAR_DICT]:
 
             rank = int(row['#RANK'])
             moi = row['MOI']
+            phenotype_score = row['EXOMISER_GENE_PHENO_SCORE']
+            gene_variant_score = row['EXOMISER_GENE_VARIANT_SCORE']
+            variant_score = row['EXOMISER_VARIANT_SCORE']
 
             # adds easily parsed details to the family dictionary, easily extensible
             proband_dictionary[proband][variant_key].append(
                 {
                     'rank': rank,
                     'moi': moi,
+                    'gene_variant_score': gene_variant_score,
+                    'variant_score': variant_score,
+                    'phenotype_score': phenotype_score,
                 },
             )
 
