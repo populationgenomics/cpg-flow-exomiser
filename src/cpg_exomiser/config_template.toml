@@ -1,5 +1,6 @@
 [workflow]
 name = 'exomiser'
+
 status_reporter = 'metamist'
 
 exomiser_version = '14.1.0'
