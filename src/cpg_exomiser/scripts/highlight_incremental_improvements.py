@@ -17,7 +17,6 @@ from collections import defaultdict
 
 from cloudpathlib.anypath import to_anypath
 
-
 VAR_SCORE_THRESHOLD = 0.8
 VAR_SCORE_KEY = 'variant_score'
 PHENO_SCORE_THRESHOLD = 0.2
@@ -30,7 +29,7 @@ def parse_json(input_file: str) -> INTERMEDIATE_TYPE:
     Read a file!
     """
 
-    results = {}
+    results: INTERMEDIATE_TYPE = {}
 
     with to_anypath(input_file).open() as handle:
         json_data = json.load(handle)
@@ -48,7 +47,7 @@ def compare_two_result_sets(old_parsed: INTERMEDIATE_TYPE, new_parsed: INTERMEDI
     compare the two objects, storing only instances where a sample is in both datasets
     and a variant fits the selection criteria
     """
-    upgrades = defaultdict(lambda: defaultdict(dict))
+    upgrades: defaultdict = defaultdict(lambda: defaultdict(dict))
 
     for sample_id in old_parsed:
         # only interested in common results
@@ -78,7 +77,7 @@ def compare_two_result_sets(old_parsed: INTERMEDIATE_TYPE, new_parsed: INTERMEDI
     return dict(upgrades)
 
 
-def main(old_input: str, new_input: str, output: str):
+def main(old_input: str, new_input: str, output: str) -> None:
     """
     step 1: read results in
     step 2: compare old(er) and new(er) results, looking for the indicated upgrade
